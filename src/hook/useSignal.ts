@@ -1,4 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
+import { useAuth } from "../context/AuthContext";
+import { checkSignalNotification } from "../services/signalNotificationService";
 
 import { getAssetSignal, type AssetSignal } from "../services/signalService";
 
@@ -13,8 +15,14 @@ export const useAssetSignal = (symbol: SupportedAsset) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  const { user } = useAuth();
+  const userId = user?.id;
+
   /**
    * Retrieves the latest signal and updates the hook state.
+   */
+  /**
+   * Retrieves the latest signal, updates the UI, and checks for new notifications.
    */
   const refresh = useCallback(async () => {
     setLoading(true);
@@ -22,7 +30,20 @@ export const useAssetSignal = (symbol: SupportedAsset) => {
 
     try {
       const result = await getAssetSignal(symbol);
+
+      // Update the UI independently of notification delivery.
       setSignal(result);
+
+      if (userId) {
+        try {
+          await checkSignalNotification(result, userId);
+        } catch (notificationError) {
+          console.warn(
+            "Failed to process signal notification:",
+            notificationError,
+          );
+        }
+      }
     } catch (err) {
       setError(
         err instanceof Error ? err.message : "Failed to fetch trading signal.",
@@ -30,7 +51,7 @@ export const useAssetSignal = (symbol: SupportedAsset) => {
     } finally {
       setLoading(false);
     }
-  }, [symbol]);
+  }, [symbol, userId]);
 
   useEffect(() => {
     void refresh();

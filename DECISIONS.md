@@ -22,7 +22,7 @@ Each signal includes its explanation and timestamp. Local notifications are gene
 
 My priority was to demonstrate the **complete functional workflow**, rather than turn SignalDesk into a continuously operating trading platform.
 
-The initial watchlist supports three cryptocurrency pairs. Expanding this to a dynamic catalog would involve retrieving available trading pairs from Binance, adapting asset validation, and introducing a searchable selector. The existing SMA calculation would remain unchanged.
+The initial watchlist includes three predefined trading pairs to demonstrate the complete workflow, from asset selection and persistence to signal generation and notifications. The underlying signal logic is asset-independent; supporting additional pairs would primarily require dynamic asset discovery, validation, and a searchable selector.
 
 Market updates are performed on demand rather than through continuous background monitoring.
 

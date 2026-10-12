@@ -1,14 +1,26 @@
-import { StyleSheet } from 'react-native';
+import { useMarketData } from "@/src/hook/useMarketData";
+import { StyleSheet, Text, View } from "react-native";
 
-import EditScreenInfo from '@/components/EditScreenInfo';
-import { Text, View } from '@/components/Themed';
+export default function Signals() {
+  const { marketData, loading, error } = useMarketData("BTCUSDT");
 
-export default function TabOneScreen() {
+  if (loading) {
+    return <Text>Loading market data...</Text>;
+  }
+
+  if (error) {
+    return <Text>{error}</Text>;
+  }
+
+  const lastFetchedData = marketData[marketData.length - 1];
+
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Tab One</Text>
-      <View style={styles.separator} lightColor="#eee" darkColor="rgba(255,255,255,0.1)" />
-      <EditScreenInfo path="app/(tabs)/index.tsx" />
+      <Text style={styles.title}>BTC/USDT</Text>
+
+      <Text>Last closed price: {lastFetchedData?.close ?? "N/A"}</Text>
+
+      <Text>Closed times: {marketData.length}</Text>
     </View>
   );
 }
@@ -16,16 +28,16 @@ export default function TabOneScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
   },
   title: {
     fontSize: 20,
-    fontWeight: 'bold',
+    fontWeight: "bold",
   },
   separator: {
     marginVertical: 30,
     height: 1,
-    width: '80%',
+    width: "80%",
   },
 });

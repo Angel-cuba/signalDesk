@@ -1,87 +1,94 @@
-import { useAssetSignal } from "@/src/hook/useSignal";
+import SignalCard from "@/components/SignalCard";
+import { useProfile } from "@/src/hook/useProfile";
+import { SupportedAsset } from "@/src/types/profile";
+
+import { useFocusEffect } from "expo-router";
+import { useCallback } from "react";
+
 import {
   ActivityIndicator,
-  Button,
+  ScrollView,
   StyleSheet,
   Text,
   View,
 } from "react-native";
 
 /**
- * Displays the latest trading signal for BTCUSDT.
- * Shows the SMA values, signal explanation, and last candle timestamp.
+ * Checks whether a symbol belongs to the supported market assets.
+ * Prevents unsupported values from being passed to SignalCard.
+ */
+const isSupportedAsset = (symbol: string): symbol is SupportedAsset => {
+  return ["BTCUSDT", "ETHUSDT", "SOLUSDT"].includes(symbol);
+};
+
+/**
+ * Displays trading signals for the assets in the user's watchlist.
+ * Refreshes the profile whenever the screen gains focus.
  */
 export default function Signals() {
-  const { signal, loading, error, refresh } = useAssetSignal("BTCUSDT");
+  const { profile, loading, error, reloadProfile } = useProfile();
+
+  /**
+   * Reloads the user's watchlist when returning from the Profile tab.
+   */
+  useFocusEffect(
+    useCallback(() => {
+      void reloadProfile().catch((err) => {
+        console.error("Failed to refresh profile:", err);
+      });
+    }, [reloadProfile]),
+  );
 
   return (
-    <View style={styles.container}>
+    <ScrollView contentContainerStyle={styles.container}>
       <Text style={styles.disclaimer}>
         Signals are for informational purposes only. Not financial advice.
       </Text>
-      <Text style={styles.title}>BTC/USDT</Text>
 
       {loading && <ActivityIndicator size="large" />}
 
       {error && <Text style={styles.error}>{error}</Text>}
 
-      {signal && (
-        <View style={styles.signalContainer}>
-          <Text style={styles.signalType}>Signal: {signal.type}</Text>
-
-          <Text>SMA5: {signal.sma5.toFixed(2)}</Text>
-          <Text>SMA10: {signal.sma10.toFixed(2)}</Text>
-
-          <Text style={styles.reason}>{signal.reason}</Text>
-
-          <Text>Closed at: {new Date(signal.timestamp).toLocaleString()}</Text>
-        </View>
+      {!loading && profile?.watchlist.length === 0 && (
+        <Text style={styles.empty}>
+          Your watchlist is empty. Select assets in your Profile.
+        </Text>
       )}
 
-      <Button
-        title={loading ? "Refreshing..." : "Refresh signal"}
-        onPress={() => void refresh()}
-        disabled={loading}
-      />
-    </View>
+      <View style={styles.cards}>
+        {profile?.watchlist.filter(isSupportedAsset).map((symbol) => (
+          <SignalCard key={symbol} symbol={symbol} />
+        ))}
+      </View>
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-    padding: 24,
+    flexGrow: 1,
+    padding: 20,
+    gap: 20,
+  },
+  cards: {
     gap: 16,
-  },
-  title: {
-    fontSize: 20,
-    fontWeight: "bold",
-  },
-  signalContainer: {
-    alignItems: "center",
-    gap: 10,
-  },
-  signalType: {
-    fontSize: 20,
-    fontWeight: "bold",
-  },
-  reason: {
-    textAlign: "center",
   },
   error: {
     color: "red",
     textAlign: "center",
   },
-  disclaimer: {
-    marginTop: 20,
+  empty: {
+    textAlign: "center",
+    marginTop: 40,
     fontSize: 16,
+  },
+  disclaimer: {
+    fontSize: 14,
     fontWeight: "bold",
     textAlign: "center",
     color: "#ffffff",
     backgroundColor: "rgba(255, 0, 0, 0.5)",
-    padding: 10,
+    padding: 12,
     borderRadius: 8,
   },
 });

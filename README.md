@@ -4,6 +4,11 @@ SignalDesk is a mobile application built with React Native and Expo that allows 
 
 The project was developed as a technical assessment, focusing on authentication, user preferences, external API integration, signal generation, and local notifications.
 
+**Project Documentation**
+
+- 📋 [Technical Decisions](./DECISIONS.md) — Architecture, implementation choices, and scope.
+- 🗺️ [Development Roadmap](./ROADMAP.md) — Development approach and planned improvements.
+
 ## Features
 
 - **Authentication:** Email/password registration, login, logout, and persistent sessions.
